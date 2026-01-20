@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ranking Associados Instituto Jovens Líderes</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+header {
+  padding: 26px 32px;
+  font-size: 26px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  padding: 0 32px 32px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 20px;
+}
+
+.kpi {
+  font-size: 34px;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.kpi-label {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.ranking-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.ranking-card {
+  width: 100%;
+  max-width: 720px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+  font-size: 14px;
+  color: #475569;
+}
+
+tr:hover {
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.side {
+  position: sticky;
+  top: 20px;
+}
+
+.side h3 {
+  margin-top: 0;
+  color: #0f766e;
+}
+
+.activity {
+  font-size: 14px;
+  padding: 6px 0;
+}
+
+.totalizador {
+  margin-top: 12px;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+canvas {
+  max-height: 260px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Ranking Associados Instituto Jovens Líderes</header>
+
+<div class="dashboard">
+
+<div>
+
+  <div class="kpis">
+    <div class="card">
+      <div class="kpi" id="kpiAssociados">0</div>
+      <div class="kpi-label">Associados</div>
+    </div>
+    <div class="card">
+      <div class="kpi" id="kpiAtividades">0</div>
+      <div class="kpi-label">Atividades</div>
+    </div>
+    <div class="card">
+      <div class="kpi" id="kpiPontos">0</div>
+      <div class="kpi-label">Pontuação Total</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <h3 style="text-align:center;">Top 3 Associados</h3>
+    <canvas id="grafTop"></canvas>
+  </div>
+
+  <div class="ranking-wrapper" style="margin-top:24px;">
+    <div class="card ranking-card">
+      <h3 style="text-align:center;">Ranking Geral</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Associado</th>
+            <th>Nível</th>
+            <th>Pontos</th>
+          </tr>
+        </thead>
+        <tbody id="ranking"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="card side">
+  <h3 id="nomeAssociado">Selecione um associado</h3>
+  <div id="atividades"></div>
+  <div class="totalizador" id="totalAtividades"></div>
+</div>
+
+</div>
+
+<script>
+// =====================
+// DADOS EMBUTIDOS
+// =====================
+const DADOS = [
+{ "Nome do Associado":"Maria","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Joana","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"João","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Santos","Nível do Associado":"Associado Alumni","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Arthur","Nível do Associado":"Associado II","Descrição da Atividade":"Submissão de resenha dentro do prazo","Pontuação":20} ,
+{ "Nome do Associado":"Ana","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Arthur","Nível do Associado":"Trainee","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Ana","Nível do Associado":"Trainee","Descrição da Atividade":"Mediação em eventos oficiais","Pontuação":20} ,
+{ "Nome do Associado":"Arthur","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Ana","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Arthur","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Ana","Nível do Associado":"Trainee","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Arthur","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Carol","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Julia","Nível do Associado":"Associado Alumni","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Paula","Nível do Associado":"Associado II","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Rafael","Nível do Associado":"Associado Alumni","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Victor","Nível do Associado":"Associado II","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Luiza","Nível do Associado":"Associado Alumni","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Julia","Nível do Associado":"Associado II","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Paula","Nível do Associado":"Associado Alumni","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Rafael","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"João","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Paula","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Rafael","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Julia","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Luiza","Nível do Associado":"Associado I","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Submissão de resenha dentro do prazo","Pontuação":20} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Mediação em eventos oficiais","Pontuação":20} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Submissão de resenha dentro do prazo","Pontuação":20} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado II","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado I","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado I","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Teste","Nível do Associado":"Associado I","Descrição da Atividade":"Submissão de resenha dentro do prazo","Pontuação":20} ,
+{ "Nome do Associado":"Camila","Nível do Associado":"Trainee","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Camila","Nível do Associado":"Trainee","Descrição da Atividade":"Artigo dentro do prazo","Pontuação":30} ,
+{ "Nome do Associado":"Camila","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10} ,
+{ "Nome do Associado":"Camila","Nível do Associado":"Trainee","Descrição da Atividade":"Presença em atividades oficiais","Pontuação":10}
+
+];
+
+// =====================
+// LÓGICA DO DASHBOARD
+// =====================
+let chart;
+
+function montarDashboard(data) {
+  let associados = {};
+  let totalPontos = 0;
+
+  data.forEach(l => {
+    const nome = l["Nome do Associado"];
+    const nivel = l["Nível do Associado"];
+    const atividade = l["Descrição da Atividade"];
+    const pontos = Number(l["Pontuação"]) || 0;
+
+    if (!associados[nome]) {
+      associados[nome] = { nivel, total: 0, atividades: {} };
+    }
+
+    associados[nome].total += pontos;
+    associados[nome].atividades[atividade] =
+      (associados[nome].atividades[atividade] || 0) + pontos;
+
+    totalPontos += pontos;
+  });
+
+  document.getElementById("kpiAssociados").innerText = Object.keys(associados).length;
+  document.getElementById("kpiAtividades").innerText = data.length;
+  document.getElementById("kpiPontos").innerText = totalPontos;
+
+  montarRanking(associados);
+  montarGraficoTop(associados);
+}
+
+function montarRanking(associados) {
+  const tbody = document.getElementById("ranking");
+  tbody.innerHTML = "";
+
+  Object.entries(associados)
+    .sort((a,b)=>b[1].total - a[1].total)
+    .forEach(([nome,obj])=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${nome}</td><td>${obj.nivel}</td><td>${obj.total}</td>`;
+      tr.onclick = () => mostrarAtividades(nome, obj);
+      tbody.appendChild(tr);
+    });
+}
+
+function mostrarAtividades(nome, obj) {
+  document.getElementById("nomeAssociado").innerText = nome;
+  const div = document.getElementById("atividades");
+  div.innerHTML = "";
+
+  Object.entries(obj.atividades).forEach(([atv,pontos])=>{
+    div.innerHTML += `<div class="activity">${atv} — ${pontos} pts</div>`;
+  });
+
+  document.getElementById("totalAtividades").innerText =
+    `Total: ${obj.total} pontos`;
+}
+
+function montarGraficoTop(associados) {
+  if (chart) chart.destroy();
+
+  const top = Object.entries(associados)
+    .sort((a,b)=>b[1].total - a[1].total)
+    .slice(0,3);
+
+  chart = new Chart(document.getElementById("grafTop"), {
+    type: "bar",
+    data: {
+      labels: top.map(t=>t[0]),
+      datasets: [{
+        data: top.map(t=>t[1].total),
+        backgroundColor: "#0d9488"
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// inicialização
+montarDashboard(DADOS);
+</script>
+
+</body>
+</html>
